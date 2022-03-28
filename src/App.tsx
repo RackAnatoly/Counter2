@@ -1,26 +1,40 @@
-import React, {ChangeEvent, useState} from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 
 import './App.css';
+import Button from "./Button";
 
 function App() {
 
-    const [max, setMax] = useState<number>(0);
+    const [max, setMax] = useState<number>(1);
     const [start, setStart] = useState<number>(0);
     const [value, setValue] = useState<number>(start);
-    const [error, setError] = useState<boolean>(false);
+    const [changed, setChanged] = useState<boolean>(false);
 
-    let a = 'Incorrect value!'
-
-
-    let set = () => {
-        setValue(start)
-        // localStorage.setItem('counterValue', JSON.stringify(value))
-        let valueAtString = localStorage.getItem('counterValue')
+    useEffect(() => {
+        let valueAtString = localStorage.getItem('counterMax')
         if (valueAtString) {
             let newValue = JSON.parse(valueAtString)
             setMax(newValue)
         }
+    }, [])
+    useEffect(() => {
+        let valueAtString = localStorage.getItem('counterStart')
+        if (valueAtString) {
+            let newValue = JSON.parse(valueAtString)
+            setStart(newValue)
+        }
+    }, [])
 
+    useEffect(() => {
+        localStorage.setItem('counterMax', JSON.stringify(max))
+    }, [max])
+    useEffect(() => {
+        localStorage.setItem('counterStart', JSON.stringify(start))
+    }, [start])
+
+    let set = () => {
+        setValue(start)
+        setChanged(false)
     }
     const inc = () => {
         if (value < max) {
@@ -30,13 +44,14 @@ function App() {
     const reset = () => setValue(start)
     const maxValueHandler = (e: ChangeEvent<HTMLInputElement>) => {
         setMax(+e.currentTarget.value)
-        localStorage.setItem('counterValue', JSON.stringify(max))
+        setChanged(true);
     }
     const startValueHandler = (e: ChangeEvent<HTMLInputElement>) => {
         setStart(+e.currentTarget.value)
+        setChanged(true)
     }
-
-    // const style = value === max ? 'max' : '';
+    const disableInc = start >= max || start < 0
+    const disableReset = start >= max || start < 0
     return (
         <div className="wrapper">
             <div className='Settings'>
@@ -60,19 +75,19 @@ function App() {
             </div>
             <div className='Display'>
                 {/*<div  className={start<max?'Counter':'Error'}>{value}*/}
-                <div className={start < max && start >= 0 ? 'Counter' : 'Error'}>
-                    {
-                        //     if(max>start){
-                        //         return value
-                        // }else if{}
-                        max > start && start >= 0 ? value : a
-                    }
+                <div className={
+                    value === max ? 'max' : (start < max && start >= 0) ? 'Counter' : 'Error'
+                }>
+                    {changed && max <= start && 'bad'}
+                    {changed && max > start && 'ok'}
+                    {!changed && value}
                 </div>
 
                 <div className='Buttons'>
-                    <button disabled={value === max} onClick={inc}>inc</button>
-                    {/*<button onClick={inc}>inc</button>*/}
-                    <button disabled={value === start} onClick={reset}>reset</button>
+                    <Button disable={disableInc} callback={inc}/>
+                    <Button disable={disableReset} callback={reset}/>
+                    {/*<button disabled={start >= max || start < 0} onClick={inc}>inc</button>*/}
+                    {/*<button disabled={start >= max || start < 0} onClick={reset}>reset</button>*/}
                 </div>
             </div>
         </div>
