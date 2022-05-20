@@ -1,55 +1,67 @@
 import React, {ChangeEvent, useEffect, useState} from 'react';
+
 import './App.css';
 import Button from "./Button";
+import {useDispatch, useSelector} from "react-redux";
+import {AppStateType} from "./Store/store";
+import {ChangeTypeAC, incValueAC, MaxAC, SetValueAC, StartAC} from "./Store/counterReducer";
 
-function App() {
+function AppWithRedux() {
 
-    const [max, setMax] = useState<number>(1);
-    const [start, setStart] = useState<number>(0);
-    const [value, setValue] = useState<number>(start);
+    const value = useSelector<AppStateType,number>(state=>state.counter.value)
+    const start = useSelector<AppStateType,number>(state=>state.counter.start)
+    const max = useSelector<AppStateType,number>(state=>state.counter.max)
+    // const changed = useSelector<AppStateType,boolean>(state=>state.counter.changed)
+
+
+    const dispatch = useDispatch()
+
+    // const [max, setMax] = useState<number>(1);
+    // const [start, setStart] = useState<number>(0);
+    // const [value, setValue] = useState<number>(start);
     const [changed, setChanged] = useState<boolean>(false);
 
-    useEffect(() => {
-        let valueAtString = localStorage.getItem('counterMax')
-        if (valueAtString) {
-            let newValue = JSON.parse(valueAtString)
-            setMax(newValue)
-        }
-    }, [])
-    useEffect(() => {
-        let valueAtString = localStorage.getItem('counterStart')
-        if (valueAtString) {
-            let newValue = JSON.parse(valueAtString)
-            setStart(newValue)
-        }
-    }, [])
-    useEffect(() => {
-        localStorage.setItem('counterMax', JSON.stringify(max))
-    }, [max])
-    useEffect(() => {
-        localStorage.setItem('counterStart', JSON.stringify(start))
-    }, [start])
+    // useEffect(() => {
+    //     let valueAtString = localStorage.getItem('counterMax')
+    //     if (valueAtString) {
+    //         let newValue = JSON.parse(valueAtString)
+    //         setMax(newValue)
+    //     }
+    // }, [])
+    // useEffect(() => {
+    //     let valueAtString = localStorage.getItem('counterStart')
+    //     if (valueAtString) {
+    //         let newValue = JSON.parse(valueAtString)
+    //         setStart(newValue)
+    //     }
+    // }, [])
+    // useEffect(() => {
+    //     localStorage.setItem('counterMax', JSON.stringify(max))
+    // }, [max])
+    // useEffect(() => {
+    //     localStorage.setItem('counterStart', JSON.stringify(start))
+    // }, [start])
 
     let set = () => {
-        setValue(start)
-        setChanged(false)
+        dispatch(SetValueAC(start))
     }
     const inc = () => {
         if (value < max) {
-            setValue(value + 1)
+            dispatch(incValueAC())
         }
     };
-    const reset = () => setValue(start)
+    const reset = () => dispatch(SetValueAC(start))
     const maxValueHandler = (e: ChangeEvent<HTMLInputElement>) => {
-        setMax(+e.currentTarget.value)
-        setChanged(true);
+        dispatch(MaxAC(+e.currentTarget.value))
+        dispatch(ChangeTypeAC(true))
     }
     const startValueHandler = (e: ChangeEvent<HTMLInputElement>) => {
-        setStart(+e.currentTarget.value)
-        setChanged(true)
+        dispatch(StartAC(+e.currentTarget.value))
+        dispatch(ChangeTypeAC(true))
     }
     const disableInc = start >= max || start < 0
     const disableReset = start >= max || start < 0
+    const disableSet = start >= max || start < 0
     return (
         <div className="wrapper">
             <div className='Settings'>
@@ -67,7 +79,8 @@ function App() {
                     </div>
                 </div>
                 <div className='btn'>
-                    <button disabled={start >= max || start < 0} onClick={set}>set</button>
+                    <Button callback={set} disable={disableSet} name={'set'}/>
+                    {/*<button disabled={start >= max || start < 0} onClick={set}>set</button>*/}
                 </div>
 
             </div>
@@ -84,8 +97,7 @@ function App() {
                 <div className='Buttons'>
                     <Button name={'inc'} disable={disableInc} callback={inc}/>
                     <Button name={'reset'} disable={disableReset} callback={reset}/>
-                    {/*<button disabled={start >= max || start < 0} onClick={inc}>inc</button>*/}
-                    {/*<button disabled={start >= max || start < 0} onClick={reset}>reset</button>*/}
+
                 </div>
             </div>
         </div>
@@ -93,4 +105,4 @@ function App() {
         ;
 }
 
-export default App;
+export default AppWithRedux;
